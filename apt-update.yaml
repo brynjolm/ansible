@@ -1,6 +1,6 @@
 ---
 - name: Perform Daily Apt Update
-  hosts: database,control  # Specify multiple groups or hosts
+  hosts: all
   become: yes  # Privilege escalation to run as root (sudo)
   tasks:
     - name: Update APT package cache
