@@ -1,0 +1,13 @@
+---
+- name: Perform Daily Apt Update
+  hosts: database,control  # Specify multiple groups or hosts
+  become: yes  # Privilege escalation to run as root (sudo)
+  tasks:
+    - name: Update APT package cache
+      apt:
+        update_cache: yes
+      register: update_result
+
+    - name: Display update result
+      debug:
+        var: update_result
