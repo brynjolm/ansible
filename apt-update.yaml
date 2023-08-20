@@ -1,7 +1,7 @@
 ---
 - name: Perform Daily Apt Update
   hosts: all
-  become: true  # Privilege escalation to run as root (sudo)
+  become: yes
   tasks:
     - name: Update APT package cache
       apt:
