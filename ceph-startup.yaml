@@ -1,0 +1,113 @@
+---
+- name: Configure Startup
+  hosts: all
+  become: true
+  tasks:
+    - name: Delete /etc/hostname and /etc/hosts
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/hostname
+        - /etc/hosts
+      register: delete_result
+      changed_when: delete_result.results[0].changed or delete_result.results[1].changed
+
+    - name: Delete SSH host keys
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop: "{{ query('fileglob', '/etc/ssh/ssh_host_*') }}"
+      changed_when: true
+
+    - name: Reconfigure openssh-server
+      command: dpkg-reconfigure openssh-server
+      register: dpkg_reconfigure_result
+      changed_when: dpkg_reconfigure_result.rc != 0
+
+    - name: Wait for 5 seconds
+      pause:
+        seconds: 5
+
+    - name: Update package list
+      apt:
+        update_cache: yes
+      register: apt_update_result
+
+    - name: Upgrade packages
+      apt:
+        upgrade: yes
+      register: apt_upgrade_result
+      when: apt_update_result | success
+
+    - name: Install required packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - nano
+        - git
+        - qemu-guest-agent
+        - wget
+        - curl
+        - samba
+        - nfs-kernel-server
+        - cifs-utils
+        - ca-certificates
+        - gnupg
+        - open-iscsi
+        - jq
+        - chrony
+      register: apt_install_result
+      when: apt_upgrade_result | success
+
+    - name: Wait for 15 seconds
+      pause:
+        seconds: 15
+
+    - name: Set /etc/resolv.conf
+      lineinfile:
+        path: /etc/resolv.conf
+        line: "{{ item }}"
+      loop:
+        - "nameserver 192.200.0.1"
+        - "nameserver 172.200.0.1"
+      register: resolv_conf_result
+
+    - name: Backup chrony.conf
+      command: cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.backup
+      register: chrony_backup_result
+
+    - name: Update chrony.conf
+      replace:
+        path: /etc/chrony/chrony.conf
+        regexp: "^pool 2.debian.pool.ntp.org iburst"
+        replace: "server 192.200.0.1 iburst"
+      register: chrony_update_result
+
+    - name: Enable and start Chrony service
+      systemd:
+        name: chrony
+        enabled: yes
+        state: started
+      register: chrony_service_result
+
+    - name: Set timezone using timedatectl
+      command: timedatectl set-timezone Europe/Berlin
+      register: timezone_result
+
+    - name: Uninstall systemd-timesyncd
+      apt:
+        name: systemd-timesyncd
+        state: absent
+      register: timesyncd_uninstall_result
+
+    - name: Wait for 10 seconds
+      pause:
+        seconds: 10
+
+    - name: Reboot the server
+      command: shutdown -r now
+      async: 0
+      poll: 0
+      ignore_errors: true
