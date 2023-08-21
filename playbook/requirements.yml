@@ -1,0 +1,3 @@
+- name: ansible_playbook
+  src: https://github.com/brynjolm/ansible.git
+  version: master  # or specify a branch/tag/commit
