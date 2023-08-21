@@ -1,0 +1,13 @@
+---
+- name: Reconfigure OpenSSH
+  hosts: my_group
+  become: true
+  tasks:
+    # Reconfigure and restart tasks here
+
+    - name: Update Ansible's known hosts
+      lineinfile:
+        path: /path/to/ansible/known_hosts
+        regexp: "{{ item }}"
+        line: "{{ item }}"
+      loop: "{{ hostvars['my_server']['ssh_fingerprints'] }}"
