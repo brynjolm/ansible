@@ -1,0 +1,30 @@
+---
+- name: Configure Servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Update GitHub repository
+      ansible.builtin.git:
+        repo: https://github.com/brynjolm/ansible.git
+        dest: /path/to/repo
+        update: yes
+
+    - name: Set hostname and update /etc/hosts
+      include_playbook: path/to/hostname_playbook.yml
+
+    - name: Install necessary packages and configure Chrony
+      include_playbook: path/to/packages_playbook.yml
+
+    - name: Configure networking on two interfaces
+      include_playbook: path/to/networking_playbook.yml
+
+    - name: Reconfigure openssh-server
+      include_playbook: path/to/openssh_playbook.yml
+
+    - name: Update Ansible's known hosts
+      include_playbook: path/to/known_hosts_playbook.yml
+
+    - name: Restart SSH service
+      service:
+        name: ssh
+        state: restarted
