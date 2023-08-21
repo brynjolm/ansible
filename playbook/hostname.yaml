@@ -1,0 +1,36 @@
+---
+- name: Configure Hostname and /etc/hosts
+  hosts: all
+  become: true
+  tasks:
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+      register: hostname_result
+
+    - name: Recreate /etc/hostname
+      copy:
+        content: "{{ inventory_hostname }}"
+        dest: /etc/hostname
+      register: hostname_file_result
+      when: hostname_result|changed
+
+    - name: Recreate /etc/hosts
+      blockinfile:
+        path: /etc/hosts
+        block: |
+          127.0.0.1 localhost {{ inventory_hostname }}
+          # The following lines are desirable for IPv6 capable hosts
+          ::1 localhost ip6-localhost ip6-loopback
+          ff02::1 ip6-allnodes
+          ff02::2 ip6-allrouters
+      register: hosts_file_result
+      when: hostname_file_result|changed
+
+    - name: Display status
+      debug:
+        msg: "Success: {{ item.key }}. Result: {{ item.value.changed }}"
+      loop:
+        - { key: "Setting hostname to {{ inventory_hostname }}", value: hostname_result }
+        - { key: "Creating /etc/hostname", value: hostname_file_result }
+        - { key: "Creating /etc/hosts", value: hosts_file_result }
