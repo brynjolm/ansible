@@ -32,7 +32,16 @@
 - name: Compare Host Keys
   hosts: control
   tasks:
+    - name: Debug Host Key Content Length
+      debug:
+        msg: "Host Key Content Length: {{ host_key_content.results | map(attribute='content') | list | length }}"
+
+    - name: Debug Local Known Hosts Length
+      debug:
+        msg: "Local Known Hosts Length: {{ local_known_hosts_content.content.split('\n') | length }}"
+
     - name: Compare Host Keys
       debug:
         msg: "Host keys match."
       when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
+
