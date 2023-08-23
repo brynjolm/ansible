@@ -1,9 +1,9 @@
 ---
-- name: Verify OpenSSH Configuration
+- name: Read Host Key Public Files from Target VMs
   hosts: all
   become: true
   tasks:
-    - name: Read Host Key Public Files from Target VMs
+    - name: Read Host Key Files
       slurp:
         src: "/etc/ssh/ssh_host_{{ item }}_key.pub"
       register: host_key_content
@@ -12,20 +12,12 @@
         - ecdsa
         - ed25519
 
-- name: Compare Host Keys
-  hosts: localhost
-  tasks:
     - name: Read Local Known Hosts File
       slurp:
-        src: "{{ lookup('env', 'HOME') + '/.ssh/known_hosts' }}"
+        src: "/root/.ssh/known_hosts"
       register: local_known_hosts_content
 
-    - name: Compare Host Key Entries
-      slurp:
-        src: "path/to/fetched_host_keys_file"
-      register: fetched_host_keys
-
-    - name: Debug Host Key Comparison
+    - name: Compare Host Keys
       debug:
         msg: "Host keys match."
-      when: local_known_hosts_content.content == fetched_host_keys.content
+      when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
