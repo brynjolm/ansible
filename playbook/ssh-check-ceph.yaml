@@ -8,7 +8,7 @@
 
     - name: Read Local Known Hosts File
       slurp:
-        src: "/root/.ssh/"  # Replace with the actual path on your control node
+        src: "/root/.ssh/known_hosts"  # Replace with the actual path on your control node
       register: local_known_hosts_content
       delegate_to: localhost
 
