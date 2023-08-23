@@ -1,21 +1,9 @@
----
 - name: Regenerate Host Keys and Verify OpenSSH Configuration
   hosts: all
   become: true
   tasks:
     - name: Regenerate Host Keys and Update Configuration
       command: dpkg-reconfigure openssh-server
-
-    - name: Copy Host Key Private Files to Control Node
-      fetch:
-        src: "/etc/ssh/ssh_host_{{ item }}_key"
-        dest: "copy/{{ inventory_hostname }}/"
-        flat: yes
-      loop:
-        - rsa
-        - ecdsa
-        - ed25519
-      become: true
 
     - name: Copy Host Key Private Files to Control Node
       fetch:
@@ -42,11 +30,25 @@
       register: ssh_restart_result
       until: ssh_restart_result is success
 
-    - name: Check SSH Connectivity
-      wait_for:
-        host: "{{ inventory_hostname }}"
-        port: 22
-        delay: 5
-        timeout: 30
-      register: ssh_connect_result
-      until: ssh_connect_result is success
+    - name: Fetch Host Key Public Files from Target VMs
+      fetch:
+        src: "/etc/ssh/ssh_host_*_key.pub"
+        dest: "fetched_keys/{{ inventory_hostname }}/"
+        flat: yes
+      become: true
+
+    - name: Compare Host Key Entries
+      set_fact:
+        local_known_hosts_content: "{{ lookup('file', '~/.ssh/known_hosts') }}"
+      run_once: true
+
+    - name: Read Fetched Host Key Files
+      slurp:
+        src: "fetched_keys/{{ inventory_hostname }}/ssh_host_*_key.pub"
+      register: fetched_host_keys
+      become: true
+
+    - name: Compare Host Keys
+      debug:
+        msg: "Host keys match."
+      when: fetched_host_keys.content == local_known_hosts_content
