@@ -16,11 +16,12 @@
   hosts: localhost
   tasks:
     - name: Compare Host Key Entries
-      set_fact:
-        local_known_hosts_content: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/known_hosts') }}"
-      run_once: true
+      slurp:
+        src: "{{ item }}"
+      register: local_known_hosts
+      loop: "{{ host_key_content.results | map(attribute='content') | list }}"
 
     - name: Debug Host Key Comparison
       debug:
         msg: "Host keys match."
-      when: host_key_content.results | map(attribute='content') | join('\n') == local_known_hosts_content
+      when: local_known_hosts.results | map(attribute='content') | list == host_key_content.results | map(attribute='content') | list
