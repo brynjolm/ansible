@@ -1,0 +1,40 @@
+---
+- name: Regenerate Host Keys and Verify OpenSSH Configuration
+  hosts: all
+  become: true
+  tasks:
+    - name: Regenerate Host Keys and Update Configuration
+      command: dpkg-reconfigure openssh-server
+
+    - name: Copy New Host Keys to Control Node
+      fetch:
+        src: "/etc/ssh/ssh_host_*_key"
+        dest: "copy/{{ inventory_hostname }}/"
+        flat: yes
+
+    - name: Update known_hosts on Control Node
+      local_action: command cat "copy/{{ inventory_hostname }}/ssh_host_*_key.pub >> ~/.ssh/known_hosts"
+      become: no
+
+    - name: Restart OpenSSH service
+      service:
+        name: sshd
+        state: restarted
+
+    - name: Wait for OpenSSH to restart
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 10
+        timeout: 120
+      register: ssh_restart_result
+      until: ssh_restart_result is success
+
+    - name: Check SSH Connectivity
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 22
+        delay: 5
+        timeout: 30
+      register: ssh_connect_result
+      until: ssh_connect_result is success
