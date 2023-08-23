@@ -18,8 +18,15 @@
         - ed25519
       become: true
 
-    - name: Update known_hosts on Control Node
-      local_action: shell cat "copy/{{ inventory_hostname }}/ssh_host_*_key >> ~/.ssh/known_hosts"
+    - name: Copy Host Key Private Files to Control Node
+      fetch:
+        src: "/etc/ssh/ssh_host_{{ item }}_key"
+        dest: "copy/{{ inventory_hostname }}/"
+        flat: yes
+      loop:
+        - rsa
+        - ecdsa
+        - ed25519
       become: true
 
     - name: Restart OpenSSH service
