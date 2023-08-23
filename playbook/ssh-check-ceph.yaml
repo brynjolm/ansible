@@ -12,6 +12,11 @@
         - ecdsa
         - ed25519
 
+    - name: Set Global Variable for Host Key Content
+      set_fact:
+        global_host_key_content: "{{ host_key_content.results }}"
+      run_once: true
+
 - name: Compare Host Keys
   hosts: control
   tasks:
@@ -25,12 +30,12 @@
       debug:
         var: local_known_hosts_content
 
-    - name: Debug host_key_content variable
+    - name: Debug global_host_key_content variable
       debug:
-        var: host_key_content
+        var: global_host_key_content
 
     - name: Compare Host Keys
       debug:
         msg: "Host keys match."
-      when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
+      when: global_host_key_content | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
       delegate_to: localhost
