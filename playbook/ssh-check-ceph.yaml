@@ -1,9 +1,18 @@
 ---
-- name: Read Host Key Public Files from Target VMs
+- name: Read Known Hosts and Compare Host Keys
+  hosts: control
+  become: true
+  tasks:
+    - name: Read Local Known Hosts File
+      slurp:
+        src: "/root/.ssh/known_hosts"
+      register: local_known_hosts_content
+
+- name: Fetch Host Key Public Files from Target VMs
   hosts: servers
   become: true
   tasks:
-    - name: Read Target Host Key Files
+    - name: Fetch Host Key Public Files from Target VMs
       slurp:
         src: "/etc/ssh/ssh_host_{{ item }}_key.pub"
       register: host_key_content
@@ -12,30 +21,10 @@
         - ecdsa
         - ed25519
 
-    - name: Set Global Variable for Host Key Content
-      set_fact:
-        global_host_key_content: "{{ host_key_content.results }}"
-      run_once: true
-
 - name: Compare Host Keys
   hosts: control
   tasks:
-    - name: Read Local Known Hosts File
-      slurp:
-        src: "/root/.ssh/known_hosts"
-      register: local_known_hosts_content
-      delegate_to: localhost
-
-    - name: Debug local_known_hosts_content variable
-      debug:
-        var: local_known_hosts_content
-
-    - name: Debug global_host_key_content variable
-      debug:
-        var: global_host_key_content
-
     - name: Compare Host Keys
       debug:
         msg: "Host keys match."
-      when: global_host_key_content | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
-      delegate_to: localhost
+      when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
