@@ -8,13 +8,13 @@
 
     - name: Copy Remote Host Key to Control Node
       lineinfile:
-        path: "/path/to/known_hosts"  # Replace with the actual path on your control node
+        path: "/root/.ssh/known_hosts"  # Replace with the actual path on your control node
         line: "{{ remote_keyscan_result.stdout }}"
       delegate_to: localhost
 
     - name: Read Local Known Hosts File
       slurp:
-        src: "/path/to/known_hosts"  # Replace with the actual path on your control node
+        src: "/root/.ssh/known_hosts"  # Replace with the actual path on your control node
       register: local_known_hosts_content
       delegate_to: localhost
 
