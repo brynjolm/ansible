@@ -1,8 +1,0 @@
----
-- name: Configure Servers
-  hosts: all
-  become: true
-  tasks:
-    - name: Include role from fetched repository
-      include_role:
-        name: requirements  # Use the role name from requirements.yml
