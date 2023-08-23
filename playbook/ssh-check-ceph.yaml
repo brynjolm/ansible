@@ -1,3 +1,4 @@
+---
 - name: Verify OpenSSH Configuration
   hosts: all
   become: true
@@ -11,16 +12,15 @@
         - ecdsa
         - ed25519
 
-    - name: Compare Host Keys
-      hosts: localhost
-      tasks:
-        - name: Compare Host Key Entries
-          set_fact:
-            local_known_hosts_content: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/known_hosts') }}"
-          run_once: true
+- name: Compare Host Keys
+  hosts: localhost
+  tasks:
+    - name: Compare Host Key Entries
+      set_fact:
+        local_known_hosts_content: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/known_hosts') }}"
+      run_once: true
 
-        - name: Debug Host Key Comparison
-          debug:
-            msg: "Host keys match."
-          when: host_key_content.results | map(attribute='content') | join('\n') == local_known_hosts_content
-
+    - name: Debug Host Key Comparison
+      debug:
+        msg: "Host keys match."
+      when: host_key_content.results | map(attribute='content') | join('\n') == local_known_hosts_content
