@@ -12,6 +12,11 @@
         - ecdsa
         - ed25519
 
+    - name: Debug Host Key Content for {{ item }}
+      debug:
+        var: host_key_content.results[item].content
+      loop: "{{ host_key_content.results | map(attribute='item') | list }}"
+
 - name: Compare Host Keys
   hosts: control
   tasks:
@@ -20,6 +25,10 @@
         src: "/root/.ssh/known_hosts"
       register: local_known_hosts_content
       delegate_to: localhost
+
+    - name: Debug local_known_hosts_content variable
+      debug:
+        var: local_known_hosts_content
 
     - name: Compare Host Keys
       debug:
