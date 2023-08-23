@@ -1,5 +1,6 @@
 - name: Verify SSH Host Keys
   hosts: servers
+  become: true
   tasks:
     - name: Fetch Remote Host Key
       command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ inventory_hostname }}
