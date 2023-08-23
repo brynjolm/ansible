@@ -1,46 +1,6 @@
-- name: Fetch Host Key Public Files from Target VMs
-  hosts: servers
-  become: true
+---
+- name: Test SSH Connectivity
+  hosts: servers  # Replace with your target host group
   tasks:
-    - name: Fetch Host Key Public Files
-      slurp:
-        src: "/etc/ssh/ssh_host_{{ item }}_key.pub"
-      register: host_key_content
-      loop:
-        - rsa
-        - ecdsa
-        - ed25519
-
-    - name: Debug Host Key Content
-      debug:
-        var: host_key_content
-
-- name: Read Known Hosts and Compare Host Keys
-  hosts: control
-  become: true
-  tasks:
-    - name: Read Local Known Hosts File
-      slurp:
-        src: "/root/.ssh/known_hosts"
-      register: local_known_hosts_content
-
-    - name: Debug Local Known Hosts Content
-      debug:
-        var: local_known_hosts_content
-
-    - name: Debug Host Key Content
-      debug:
-        var: host_key_content
-
-    - name: Debug Host Key Content Length
-      debug:
-        msg: "Host Key Content Length: {{ host_key_content.results | map(attribute='content') | list | length }}"
-
-    - name: Debug Local Known Hosts Length
-      debug:
-        msg: "Local Known Hosts Length: {{ local_known_hosts_content.content.split('\n') | length }}"
-
-    - name: Compare Host Keys
-      debug:
-        msg: "Host keys match."
-      when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
+    - name: Test SSH Connectivity
+      ping:
