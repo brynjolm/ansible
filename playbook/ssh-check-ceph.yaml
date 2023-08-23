@@ -26,16 +26,20 @@
       register: local_known_hosts_content
       delegate_to: localhost
 
+    - name: Hash Fetched Host Key Content
+      set_fact:
+        hashed_host_key_content: "{{ global_host_key_content | map(attribute='content') | map('b64decode') | map('to_json') | list }}"
+
+    - name: Debug hashed_host_key_content
+      debug:
+        var: hashed_host_key_content
+
     - name: Debug local_known_hosts_content variable
       debug:
         var: local_known_hosts_content
 
-    - name: Debug global_host_key_content variable
-      debug:
-        var: global_host_key_content
-
     - name: Compare Host Keys
       debug:
         msg: "Host keys match."
-      when: global_host_key_content | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
+      when: hashed_host_key_content == local_known_hosts_content.content.split('\n')
       delegate_to: localhost
