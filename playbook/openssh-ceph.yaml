@@ -13,7 +13,6 @@
         flat: yes
       loop:
         - rsa
-        - dsa
         - ecdsa
         - ed25519
       become: true
