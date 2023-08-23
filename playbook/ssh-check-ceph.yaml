@@ -12,11 +12,6 @@
         - ecdsa
         - ed25519
 
-    - name: Set Global Variable for Host Key Content
-      set_fact:
-        global_host_key_content: "{{ host_key_content.results }}"
-      run_once: true
-
 - name: Compare Host Keys
   hosts: control
   tasks:
@@ -25,6 +20,10 @@
         src: "/root/.ssh/known_hosts"
       register: local_known_hosts_content
       delegate_to: localhost
+
+    - name: Set Global Variable for Host Key Content
+      set_fact:
+        global_host_key_content: "{{ host_key_content.results }}"
 
     - name: Hash Fetched Host Key Content
       set_fact:
