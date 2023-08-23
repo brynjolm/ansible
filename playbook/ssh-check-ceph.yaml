@@ -12,9 +12,17 @@
       register: local_known_hosts_content
       delegate_to: localhost
 
+    - name: Debug Remote Key
+      debug:
+        var: remote_keyscan_result.stdout_lines[0]
+
+    - name: Debug Local Known Hosts Content
+      debug:
+        var: local_known_hosts_content.content
+
     - name: Compare Remote and Local Known Hosts Keys
       assert:
         that:
-          - remote_keyscan_result.stdout_lines[0] in local_known_hosts_content.content | b64decode | b64decode | string
+          - remote_keyscan_result.stdout_lines[0] == local_known_hosts_content.content
         fail_msg: "Host key does not match known hosts!"
       ignore_errors: yes
