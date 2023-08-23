@@ -1,9 +1,9 @@
 ---
 - name: Read Host Key Public Files from Target VMs
-  hosts: all
+  hosts: servers
   become: true
   tasks:
-    - name: Read Host Key Files
+    - name: Read Target Host Key Files
       slurp:
         src: "/etc/ssh/ssh_host_{{ item }}_key.pub"
       register: host_key_content
@@ -12,12 +12,17 @@
         - ecdsa
         - ed25519
 
+- name: Compare Host Keys
+  hosts: control
+  tasks:
     - name: Read Local Known Hosts File
       slurp:
         src: "/root/.ssh/known_hosts"
       register: local_known_hosts_content
+      delegate_to: localhost
 
     - name: Compare Host Keys
       debug:
         msg: "Host keys match."
       when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
+      delegate_to: localhost
