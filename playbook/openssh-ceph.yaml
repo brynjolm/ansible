@@ -1,5 +1,5 @@
 - name: Regenerate Host Keys and Verify OpenSSH Configuration
-  hosts: all
+  hosts: servers
   become: true
   tasks:
     - name: Regenerate Host Keys and Update Configuration
