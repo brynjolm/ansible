@@ -12,10 +12,10 @@
         - ecdsa
         - ed25519
 
-    - name: Debug Host Key Content for {{ item }}
-      debug:
-        var: host_key_content.results[item].content
-      loop: "{{ host_key_content.results | map(attribute='item') | list }}"
+    - name: Set Global Variable for Host Key Content
+      set_fact:
+        global_host_key_content: "{{ host_key_content.results }}"
+      run_once: true
 
 - name: Compare Host Keys
   hosts: control
@@ -30,8 +30,12 @@
       debug:
         var: local_known_hosts_content
 
+    - name: Debug global_host_key_content variable
+      debug:
+        var: global_host_key_content
+
     - name: Compare Host Keys
       debug:
         msg: "Host keys match."
-      when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
+      when: global_host_key_content | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
       delegate_to: localhost
