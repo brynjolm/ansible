@@ -1,4 +1,20 @@
----
+- name: Fetch Host Key Public Files from Target VMs
+  hosts: servers
+  become: true
+  tasks:
+    - name: Fetch Host Key Public Files
+      slurp:
+        src: "/etc/ssh/ssh_host_{{ item }}_key.pub"
+      register: host_key_content
+      loop:
+        - rsa
+        - ecdsa
+        - ed25519
+
+    - name: Debug Host Key Content
+      debug:
+        var: host_key_content
+
 - name: Read Known Hosts and Compare Host Keys
   hosts: control
   become: true
@@ -12,26 +28,10 @@
       debug:
         var: local_known_hosts_content
 
-- name: Fetch Host Key Public Files from Target VMs
-  hosts: servers
-  become: true
-  tasks:
-    - name: Fetch Host Key Public Files from Target VMs
-      slurp:
-        src: "/etc/ssh/ssh_host_{{ item }}_key.pub"
-      register: host_key_content
-      loop:
-        - rsa
-        - ecdsa
-        - ed25519
-
     - name: Debug Host Key Content
       debug:
         var: host_key_content
 
-- name: Compare Host Keys
-  hosts: control
-  tasks:
     - name: Debug Host Key Content Length
       debug:
         msg: "Host Key Content Length: {{ host_key_content.results | map(attribute='content') | list | length }}"
@@ -44,4 +44,3 @@
       debug:
         msg: "Host keys match."
       when: host_key_content.results | map(attribute='content') | list == local_known_hosts_content.content.split('\n')
-
