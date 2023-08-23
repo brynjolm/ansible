@@ -6,10 +6,11 @@
     - name: Regenerate Host Keys and Update Configuration
       command: dpkg-reconfigure openssh-server
 
-    - name: Copy Host Key Public Files to Known Hosts
-      lineinfile:
-        path: ~/.ssh/known_hosts
-        line: "{{ lookup('file', 'copy/' + inventory_hostname + '/ssh_host_' + item + '_key.pub') }}"
+    - name: Copy Host Key Private Files to Control Node
+      fetch:
+        src: "/etc/ssh/ssh_host_{{ item }}_key"
+        dest: "copy/{{ inventory_hostname }}/"
+        flat: yes
       loop:
         - rsa
         - dsa
@@ -18,7 +19,7 @@
       become: true
 
     - name: Update known_hosts on Control Node
-      local_action: command cat "copy/{{ inventory_hostname }}/ssh_host_*_key.pub >> ~/.ssh/known_hosts"
+      local_action: shell cat "copy/{{ inventory_hostname }}/ssh_host_*_key >> ~/.ssh/known_hosts"
       become: true
 
     - name: Restart OpenSSH service
