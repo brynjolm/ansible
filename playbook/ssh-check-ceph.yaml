@@ -1,0 +1,25 @@
+- name: Regenerate Host Keys and Verify OpenSSH Configuration
+  hosts: all
+  become: true
+    - name: Fetch Host Key Public Files from Target VMs
+      fetch:
+        src: "/etc/ssh/ssh_host_*_key.pub"
+        dest: "fetched_keys/{{ inventory_hostname }}/"
+        flat: yes
+      become: true
+
+    - name: Compare Host Key Entries
+      set_fact:
+        local_known_hosts_content: "{{ lookup('file', '~/.ssh/known_hosts') }}"
+      run_once: true
+
+    - name: Read Fetched Host Key Files
+      slurp:
+        src: "fetched_keys/{{ inventory_hostname }}/ssh_host_*_key.pub"
+      register: fetched_host_keys
+      become: true
+
+    - name: Compare Host Keys
+      debug:
+        msg: "Host keys match."
+      when: fetched_host_keys.content == local_known_hosts_content
