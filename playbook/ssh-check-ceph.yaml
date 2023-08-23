@@ -8,6 +8,10 @@
         src: "/root/.ssh/known_hosts"
       register: local_known_hosts_content
 
+    - name: Debug Local Known Hosts Content
+      debug:
+        var: local_known_hosts_content
+
 - name: Fetch Host Key Public Files from Target VMs
   hosts: servers
   become: true
@@ -20,6 +24,10 @@
         - rsa
         - ecdsa
         - ed25519
+
+    - name: Debug Host Key Content
+      debug:
+        var: host_key_content
 
 - name: Compare Host Keys
   hosts: control
