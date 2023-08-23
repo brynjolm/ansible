@@ -8,8 +8,9 @@
 
     - name: Read Local Known Hosts File
       slurp:
-        src: "/root/.ssh/known_hosts"
+        src: "/path/to/known_hosts"  # Replace with the actual path on your control node
       register: local_known_hosts_content
+      delegate_to: localhost
 
     - name: Compare Remote and Local Known Hosts Keys
       assert:
