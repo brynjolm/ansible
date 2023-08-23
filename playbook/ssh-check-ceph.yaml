@@ -1,6 +1,18 @@
----
-- name: Test SSH Connectivity
-  hosts: servers  # Replace with your target host group
+- name: Verify SSH Host Keys
+  hosts: servers
   tasks:
-    - name: Test SSH Connectivity
-      ping:
+    - name: Fetch Remote Host Key
+      command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ inventory_hostname }}
+      register: remote_keyscan_result
+
+    - name: Read Local Known Hosts File
+      slurp:
+        src: "/root/.ssh/known_hosts"
+      register: local_known_hosts_content
+
+    - name: Compare Remote and Local Known Hosts Keys
+      assert:
+        that:
+          - remote_keyscan_result.stdout_lines[0] in local_known_hosts_content.content | b64decode | b64decode | string
+        fail_msg: "Host key does not match known hosts!"
+      ignore_errors: yes
