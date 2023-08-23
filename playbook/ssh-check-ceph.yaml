@@ -1,4 +1,4 @@
-- name: Regenerate Host Keys and Verify OpenSSH Configuration
+- name: Verify OpenSSH Configuration
   hosts: all
   become: true
     - name: Fetch Host Key Public Files from Target VMs
