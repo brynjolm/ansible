@@ -34,13 +34,16 @@
     - name: Gather facts
       setup:
 
-    - name: Check and update default gateway
-      loop: "{{ ansible_facts['ansible_interfaces'] }}"
-      when: ansible_facts['ansible_default_ipv4']['gateway'] != '192.200.0.1'
-      block:
-        - name: Set default gateway
-          become: true
-          shell: ip route replace default via 192.200.0.1 dev {{ item }}
+    - name: Check default gateway
+      command: ip route show default | grep -q "via 192.200.0.1"
+      register: default_gateway_check
+      changed_when: false
+      check_mode: no_run  # Skip running in check mode
+
+    - name: Update default gateway
+      command: ip route replace default via 192.200.0.1
+      when: default_gateway_check.rc != 0
+
 
 - name: Find available IP and select
   hosts: servers
