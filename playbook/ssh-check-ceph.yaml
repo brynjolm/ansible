@@ -16,13 +16,14 @@
       register: local_known_hosts_content
       delegate_to: localhost
 
-    - name: Generate Hash of Remote Keys
-      set_fact:
-        remote_key_hashes: "{{ remote_keyscan_results.results | map(attribute='stdout') | map('b64decode') | map('b64decode') | map('hash', 'sha256') | list }}"
-
     - name: Generate Hash of Local Keys
       set_fact:
         local_key_hash: "{{ local_known_hosts_content.content | b64decode | b64decode | hash('sha256') }}"
+
+    - name: Generate Hashes of Remote Keys
+      set_fact:
+        remote_key_hashes: "{{ remote_key_hashes | default([]) + [item.stdout | b64decode | b64decode | hash('sha256')] }}"
+      loop: "{{ remote_keyscan_results.results }}"
 
     - name: Compare Remote and Local Key Hashes
       assert:
