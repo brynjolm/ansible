@@ -2,6 +2,9 @@
   hosts: all  # Replace with the appropriate host group name
   become: true
   vars:
+    available_ip_range_start: 100
+    available_ip_range_end: 130
+
     network_connection_static:
       - name: static-network
         type: ethernet
@@ -14,10 +17,11 @@
             - 172.200.0.1
 
   tasks:
-    - name: Get available IPs
+    - name: Get available IP
       set_fact:
-        available_ips: "{{ (100 + ansible_play_batch.index + 1) | format('172.200.0.%d') }}"
-      run_once: true
+        selected_ip: "172.200.0.{{ item }}"
+      loop: "{{ range(available_ip_range_start, available_ip_range_end) }}"
+      when: "not selected_ip"
 
     - name: Configure ens19 interface with static IP
       nmcli:
@@ -29,8 +33,6 @@
       loop: "{{ network_connection_static }}"
       loop_control:
         loop_var: item
-      vars:
-        selected_ip: "{{ available_ips | format(ansible_play_batch.index + 1) }}"
 
     - name: Configure ens18 interface with DHCP
       nmcli:
