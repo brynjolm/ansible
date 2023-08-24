@@ -3,14 +3,6 @@
   hosts: servers
   become: yes
   tasks:
-    - name: Ensure ens18 is DHCP
-      community.general.interfaces_file:
-        dest: "/etc/network/interfaces"
-        iface: ens18
-        option: dhcp
-        state: present
-        unsafe_writes: true
-
     - name: Ensure ens19 is DHCP
       community.general.interfaces_file:
         dest: "/etc/network/interfaces"
