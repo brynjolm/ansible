@@ -27,7 +27,6 @@
               address 172.200.0.100
               netmask 255.255.0.0
               gateway 172.200.0.1
-      notify: Restart networking
 
     - name: Fetch template from URL and populate
       uri:
@@ -43,7 +42,7 @@
         ens18_content: "{{ ens18_content }}"
         ens19_content: "{{ ens19_content }}"
         
-    - name: Restart networking
+    - name: Restart networking using service module
       service:
         name: networking
         state: restarted
