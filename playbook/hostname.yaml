@@ -18,4 +18,3 @@
         path: /etc/hosts
         regexp: '^127\.0\.1\.1\s+.*$'
         line: "127.0.1.1 {{ inventory_hostname }}.homelabbity.uk {{ inventory_hostname }}"
-      when: hostname_result.changed
