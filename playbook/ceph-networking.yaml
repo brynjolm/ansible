@@ -1,29 +1,22 @@
 ---
-- name: Configure ens19 interface with static IP
-  hosts: all  # Replace with the appropriate host group name
-  become: true
-
-  vars:
-    network_connection_static:
-      - name: static-network
-        type: ethernet
-        state: up
-
+- name: Configure network interfaces
+  hosts: ceph_servers
+  become: yes
   tasks:
-    - name: Get available IP
-      set_fact:
-        selected_ip: "{{ hostvars[item].available_ips | difference(hostvars[item].used_ips) | first }}"
-      loop: "{{ ansible_play_hosts_all }}"
-      loop_control:
-        loop_var: item
+    - name: Ensure ens18 is DHCP
+      community.general.interfaces_file:
+        dest: "/etc/network/interfaces.d/ens18"
+        iface: ens18
+        option: "dhcp"
+        state: present
 
-    - name: Generate network configuration file from URL
-      get_url:
-        url: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
-        dest: "/etc/network/interfaces.d/{{ network_connection_static[0].name }}"
+    - name: Ensure ens19 is DHCP
+      community.general.interfaces_file:
+        dest: "/etc/network/interfaces.d/ens19"
+        iface: ens19
+        option: "dhcp"
+        state: present
 
-    - name: Replace placeholder with selected IP in the template file
-      replace:
-        path: "/etc/network/interfaces.d/{{ network_connection_static[0].name }}"
-        regexp: '### SELECTED_IP ###'
-        replace: "{{ selected_ip }}"
+    - name: Apply network configuration
+      shell: systemctl restart networking
+      become: yes
