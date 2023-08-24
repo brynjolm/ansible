@@ -16,9 +16,17 @@
       register: local_known_hosts_content
       delegate_to: localhost
 
-    - name: Compare Remote and Local Known Hosts Keys
+    - name: Generate Hash of Remote Keys
+      set_fact:
+        remote_key_hash: "{{ remote_keyscan_result.stdout | b64decode | b64decode | hash('sha256') }}"
+
+    - name: Generate Hash of Local Keys
+      set_fact:
+        local_key_hash: "{{ local_known_hosts_content.content | b64decode | b64decode | hash('sha256') }}"
+
+    - name: Compare Remote and Local Key Hashes
       assert:
         that:
-          - remote_keyscan_result.stdout in local_known_hosts_content.content | b64decode | b64decode | string
-        fail_msg: "Host key does not match known hosts!"
+          - remote_key_hash == local_key_hash
+        fail_msg: "Host key hashes do not match known hosts!"
       ignore_errors: yes
