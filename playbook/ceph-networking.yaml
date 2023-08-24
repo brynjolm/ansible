@@ -21,18 +21,17 @@
       set_fact:
         selected_ip: "172.200.0.{{ item }}"
       loop: "{{ range(available_ip_range_start, available_ip_range_end) }}"
-      when: "not selected_ip"
+      when: "not selected_ip"  # This ensures we stop once an IP is selected
 
     - name: Configure ens19 interface with static IP
       nmcli:
-        conn_name: "{{ item.name }}"
-        type: "{{ item.type }}"
-        state: "{{ item.state }}"
+        conn_name: "{{ network_connection_static[0].name }}"
+        type: "{{ network_connection_static[0].type }}"
+        state: "{{ network_connection_static[0].state }}"
         ifname: ens19
-        ip4: "{{ item.ip }}"
-      loop: "{{ network_connection_static }}"
-      loop_control:
-        loop_var: item
+        ip4: "{{ network_connection_static[0].ip }}"
+      vars:
+        network_connection_static: "{{ network_connection_static | first }}"
 
     - name: Configure ens18 interface with DHCP
       nmcli:
@@ -41,5 +40,3 @@
         state: up
         ifname: ens18
         ip4: "dhcp"  # This indicates DHCP configuration
-      loop_control:
-        loop_var: item
