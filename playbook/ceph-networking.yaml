@@ -30,7 +30,7 @@
       loop_control:
         loop_var: item
       vars:
-        selected_ip: "{{ available_ips }}"
+        selected_ip: "{{ available_ips | format(ansible_play_batch.index + 1) }}"
 
     - name: Configure ens18 interface with DHCP
       nmcli:
