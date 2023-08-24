@@ -1,6 +1,6 @@
 ---
 - name: Configure Hostname and /etc/hosts
-  hosts: all
+  hosts: servers
   become: true
   tasks:
     - name: Set hostname
