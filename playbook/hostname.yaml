@@ -16,11 +16,6 @@
     - name: Update /etc/hosts for current hostname
       lineinfile:
         path: /etc/hosts
-        regexp: '^127\.0\.0\.1\s+(?!{{ inventory_hostname }}\s*\n).*'
-        line: "127.0.0.1 {{ inventory_hostname }}"
-
-    - name: Update /etc/hosts for previous hostname entry
-      lineinfile:
-        path: /etc/hosts
-        regexp: '^127\.0\.0\.1\s+{{ inventory_hostname }}'
-        state: absent
+        regexp: '^127\.0\.1\.1\s+.*$'
+        line: "127.0.1.1 {{ inventory_hostname }}.homelabbity.uk {{ inventory_hostname }}"
+      when: hostname_result.changed
