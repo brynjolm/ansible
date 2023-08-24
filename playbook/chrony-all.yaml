@@ -1,0 +1,45 @@
+- name: Configure Time Synchronization and Timezone
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Chrony
+      apt:
+        name: chrony
+        state: latest
+
+    - name: Backup chrony.conf
+      command: cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.backup
+      register: chrony_backup_result
+
+    - name: Update chrony.conf
+      replace:
+        path: /etc/chrony/chrony.conf
+        regexp: "^pool 2.debian.pool.ntp.org iburst"
+        replace: "server 192.200.0.1 iburst"
+      register: chrony_update_result
+      when: chrony_backup_result.rc == 0  # Only update if backup was successful
+
+    - name: Enable and start Chrony service
+      systemd:
+        name: chrony
+        enabled: yes
+        state: started
+      register: chrony_service_result
+
+    - name: Set timezone using timedatectl
+      command: timedatectl set-timezone Europe/Berlin
+      register: timezone_result
+
+    - name: Check Chrony synchronization status
+      shell: chronyc tracking | grep -E "Leap status\s+: Normal|Leap status\s+: Insert second"
+      register: sync_status
+      ignore_errors: true  # Ignore errors in case synchronization check fails
+
+    - name: Display synchronization status
+      debug:
+        var: sync_status.stdout_lines
+
+    - name: Force resynchronization if not synced
+      shell: chronyc makestep
+      when: "'Leap status: Normal' not in sync_status.stdout_lines and 'Leap status: Insert second' not in sync_status.stdout_lines"
+      ignore_errors: true  # Ignore errors in case resynchronization fails
