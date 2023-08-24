@@ -20,22 +20,12 @@
               gateway 172.200.0.1
       notify: Restart networking
 
-    - name: Append ens18 DHCP configuration
-      lineinfile:
+    - name: Append allow-hotplug for ens18 and ens19
+      blockinfile:
         path: /etc/network/interfaces
-        line: "iface ens18 inet dhcp"
-      insertafter: '^# The primary network interface'
-
-    - name: Add allow-hotplug for ens19
-      lineinfile:
-        path: /etc/network/interfaces
-        line: "allow-hotplug ens19"
-        insertafter: '^# The primary network interface'
-
-    - name: Add allow-hotplug for ens18
-      lineinfile:
-        path: /etc/network/interfaces
-        line: "allow-hotplug ens18"
+        block: |
+          allow-hotplug ens18
+          allow-hotplug ens19
         insertafter: '^# The primary network interface'
         
   handlers:
