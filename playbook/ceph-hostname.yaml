@@ -1,4 +1,3 @@
----
 - name: Configure Hostname and /etc/hosts
   hosts: servers
   become: true
@@ -14,7 +13,6 @@
         line: "{{ inventory_hostname }}"
       when: hostname_result.changed
 
----
 - name: Check current hostname and update /etc/hosts if needed
   hosts: servers
   tasks:
