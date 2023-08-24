@@ -2,30 +2,19 @@
   hosts: servers
   become: true
   tasks:
-    - name: Fetch Remote Host Keys
-      command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ item }}
+    - name: Fetch Remote Host Key
+      command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ inventory_hostname }}
       register: remote_keyscan_result
-      loop:
-        - 192.200.0.100
-        - 192.200.0.101
-        - 192.200.0.102
-        
-    - name: Copy Remote Host Key to Control Node
-      lineinfile:
-        path: "/root/.ssh/known_hosts"  # Replace with the actual path on your control node
-        line: "{{ item.stdout }}"
-      delegate_to: localhost
-      loop: "{{ remote_keyscan_result.results }}"
 
     - name: Read Local Known Hosts File
       slurp:
         src: "/root/.ssh/known_hosts"  # Replace with the actual path on your control node
       register: local_known_hosts_content
       delegate_to: localhost
-      
+
     - name: Compare Remote and Local Known Hosts Keys
       assert:
         that:
-          - remote_keyscan_result.stdout | b64decode | b64decode == local_known_hosts_content.content | b64decode | b64decode | string
+          - remote_keyscan_result.stdout in local_known_hosts_content.content | b64decode | b64decode | string
         fail_msg: "Host key does not match known hosts!"
       ignore_errors: yes
