@@ -31,8 +31,8 @@
   hosts: servers
   become: true
   tasks:
-    - name: Gather network facts
-      network_facts:
+    - name: Gather facts
+      setup:
 
     - name: Check and update default gateway
       set_fact:
