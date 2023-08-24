@@ -4,7 +4,7 @@
   tasks:
     - name: Fetch Remote Host Keys
       command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ item }}
-      register: remote_keyscan_result
+      register: remote_keyscan_results
       loop:
         - 192.200.0.100
         - 192.200.0.101
@@ -18,7 +18,7 @@
 
     - name: Generate Hash of Remote Keys
       set_fact:
-        remote_key_hash: "{{ remote_keyscan_result.stdout | b64decode | b64decode | hash('sha256') }}"
+        remote_key_hashes: "{{ remote_keyscan_results.results | map(attribute='stdout') | map('b64decode') | map('b64decode') | map('hash', 'sha256') | list }}"
 
     - name: Generate Hash of Local Keys
       set_fact:
@@ -27,6 +27,6 @@
     - name: Compare Remote and Local Key Hashes
       assert:
         that:
-          - remote_key_hash == local_key_hash
+          - remote_key_hashes == [local_key_hash] * remote_key_hashes | length
         fail_msg: "Host key hashes do not match known hosts!"
       ignore_errors: yes
