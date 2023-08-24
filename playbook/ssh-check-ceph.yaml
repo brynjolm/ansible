@@ -9,12 +9,13 @@
         - 192.200.0.100
         - 192.200.0.101
         - 192.200.0.102
-
+        
     - name: Copy Remote Host Key to Control Node
       lineinfile:
         path: "/root/.ssh/known_hosts"  # Replace with the actual path on your control node
-        line: "{{ remote_keyscan_result.stdout }}"
+        line: "{{ item.stdout }}"
       delegate_to: localhost
+      loop: "{{ remote_keyscan_result.results }}"
 
     - name: Read Local Known Hosts File
       slurp:
