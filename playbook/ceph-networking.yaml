@@ -20,32 +20,6 @@
           auto lo
           iface lo inet loopback
 
-    - name: Find available IP and configure ens18
-      shell: |
-        base_ip="192.200.0"
-        ip_range_start=100
-        ip_range_end=250
-        for ((i = ip_range_start; i <= ip_range_end; i++)); do
-            ip="$base_ip.$i"
-            if ! ping -c 1 -W 1 "$ip" > /dev/null 2>&1; then
-                break
-            fi
-        done
-
-        if [ "$i" -le "$ip_range_end" ]; then
-            echo "# Configured by Ansible" >> /etc/network/interfaces_tmp
-            echo "auto ens18" >> /etc/network/interfaces_tmp
-            echo "iface ens18 inet static" >> /etc/network/interfaces_tmp
-            echo "    address $ip" >> /etc/network/interfaces_tmp
-            echo "    netmask 255.255.0.0" >> /etc/network/interfaces_tmp
-            echo "    gateway 192.200.0.1" >> /etc/network/interfaces_tmp
-            post_status $? "Configured ens18 with IP $ip"
-        else
-            post_status 1 "No available IP found in range $base_ip.$ip_range_start - $base_ip.$ip_range_end"
-        fi
-      register: result_ens18
-      changed_when: false  # Avoid marking as changed even if IP is not configured
-
     - name: Find available IP and configure ens19
       shell: |
         base_ip="172.200.0"
@@ -76,16 +50,9 @@
       copy:
         src: /etc/network/interfaces_tmp
         dest: /etc/network/interfaces
-      when: result_ens18.rc == 0 or result_ens19.rc == 0
+      when: result_ens19.rc == 0
 
     - name: Clean up temporary files
       file:
         path: /etc/network/interfaces_tmp
-        state: absent
-      when: result_ens18.rc == 0 or result_ens19.rc == 0
-
-    - name: Restart networking service
-      systemd:
-        name: networking
-        state: restarted
-      when: result_ens18.rc == 0 or result_ens19.rc == 0
+       
