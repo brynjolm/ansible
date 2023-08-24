@@ -7,8 +7,15 @@
         name: "{{ inventory_hostname }}"
       register: hostname_result
 
+    - name: Update /etc/hostname
+      lineinfile:
+        path: /etc/hostname
+        line: "{{ inventory_hostname }}"
+      when: hostname_result.changed
+
     - name: Update /etc/hosts
       lineinfile:
         path: /etc/hosts
+        regexp: '^127.0.0.1.*'
         line: "127.0.0.1 {{ inventory_hostname }}"
       when: hostname_result.changed
