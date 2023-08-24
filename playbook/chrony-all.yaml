@@ -1,5 +1,5 @@
 - name: Configure Time Synchronization and Timezone
-  hosts: all
+  hosts: servers
   become: true
   tasks:
     - name: Install Chrony
@@ -31,7 +31,8 @@
       register: timezone_result
 
     - name: Check Chrony synchronization status
-      shell: chronyc tracking | grep -E "Leap status\s+: Normal|Leap status\s+: Insert second"
+      shell: |
+        chronyc tracking | grep -E "Leap status\s+: Normal|Leap status\s+: Insert second"
       register: sync_status
       ignore_errors: true  # Ignore errors in case synchronization check fails
 
