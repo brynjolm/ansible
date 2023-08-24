@@ -7,15 +7,17 @@
       community.general.interfaces_file:
         dest: "/etc/network/interfaces.d/ens18"
         iface: ens18
-        option: "dhcp"
+        option: dhcp
         state: present
+        unsafe_writes: true
 
     - name: Ensure ens19 is DHCP
       community.general.interfaces_file:
         dest: "/etc/network/interfaces.d/ens19"
         iface: ens19
-        option: "dhcp"
+        option: dhcp
         state: present
+        unsafe_writes: true
 
     - name: Apply network configuration
       shell: systemctl restart networking
