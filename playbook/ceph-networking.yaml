@@ -1,30 +1,16 @@
 ---
-- name: Configure ens19 interface with static IP
-  hosts: all
+- name: Configure ens18 and ens19 interfaces
+  hosts: all  # Replace with the appropriate host group name
   become: true
+
   vars:
     network_connection_static:
-      - name: ens19
-        ip: "{{ next_usable_ip }}/16"
-        gateway: 172.200.0.1
-        dns: 172.200.0.1
+      - name: static-network
+        type: ethernet
+        state: up
 
   tasks:
-    - name: Calculate next usable IP
-      set_fact:
-        next_usable_ip: "{{ '172.200.0.2' | ipaddr('next_usable') }}"
-
-- name: Generate network configuration file
-  template:
-    src: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
-    dest: "/etc/network/interfaces.d/{{ network_connection_static[0].name }}"
-  notify: Apply network configuration
-
-      # Run handlers to apply network configuration changes
-      notify: Apply network configuration
-
-  handlers:
-    - name: Apply network configuration
-      systemd:
-        name: networking
-        state: restarted
+    - name: Generate network configuration file
+      template:
+        src: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
+        dest: "/etc/network/interfaces.d/{{ network_connection_static[0].name }}"
