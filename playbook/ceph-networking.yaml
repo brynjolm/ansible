@@ -19,9 +19,9 @@
   tasks:
     - name: Get available IP
       set_fact:
-        selected_ip: "172.200.0.{{ item }}"
+        selected_ip: "172.200.0.{{ (100 + ansible_play_batch.index) }}"
       loop: "{{ range(available_ip_range_start, available_ip_range_end) }}"
-      when: "not selected_ip"  # This ensures we stop once an IP is selected
+      when: "not selected_ip"
 
     - name: Configure ens19 interface with static IP
       nmcli:
