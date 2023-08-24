@@ -2,9 +2,13 @@
   hosts: servers
   become: true
   tasks:
-    - name: Fetch Remote Host Key
-      command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ inventory_hostname }}
+    - name: Fetch Remote Host Keys
+      command: ssh-keyscan -t rsa,ecdsa,ed25519 {{ item }}
       register: remote_keyscan_result
+      loop:
+        - 192.200.0.100
+        - 192.200.0.101
+        - 192.200.0.102
 
     - name: Copy Remote Host Key to Control Node
       lineinfile:
