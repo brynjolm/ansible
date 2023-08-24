@@ -1,0 +1,56 @@
+---
+- name: Configure ens19 with static IP
+  hosts: servers
+  become: true
+  tasks:
+    - name: Update ens19 configuration
+      lineinfile:
+        path: /etc/network/interfaces
+        regexp: '^iface ens19'
+        line: |
+          iface ens19 inet static
+              address 172.200.0.100
+              netmask 255.255.0.0
+              gateway 172.200.0.1
+      notify: Restart networking
+
+    - name: Restart networking service
+      service:
+        name: networking
+        state: restarted
+
+- name: Pause for SSH reconnection
+  hosts: servers
+  become: true
+  tasks:
+    - name: Pause for SSH reconnection
+      pause:
+        minutes: 5
+
+- name: Gather network facts and update default gateway
+  hosts: servers
+  become: true
+  tasks:
+    - name: Gather network facts
+      network_facts:
+
+    - name: Check and update default gateway
+      set_fact:
+        desired_gateway: '192.200.0.1'
+      loop: "{{ ansible_facts['ansible_interfaces'] }}"
+      when: ansible_facts['ansible_default_ipv4']['gateway'] != desired_gateway
+      shell: ip route replace default via {{ desired_gateway }}
+
+- name: Find available IP and select
+  hosts: servers
+  become: true
+  tasks:
+    - name: Generate available IPs
+      set_fact:
+        available_ips: "{{ range(100, 130) | map('format', '172.200.0.{}') | list }}"  # Generates IPs from 172.200.0.100 to 172.200.0.120
+
+    - name: Get first available IP
+      set_fact:
+        selected_ip: "{{ available_ips | difference(used_ips) | first }}"
+      vars:
+        used_ips: "{{ ansible_play_hosts_all | map('extract', hostvars) | map(attribute='ansible_default_ipv4.address') | select('defined') | list }}"
