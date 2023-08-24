@@ -15,6 +15,7 @@
 
 - name: Check current hostname and update /etc/hosts if needed
   hosts: servers
+  become: true
   tasks:
     - name: Read current hostname from /etc/hostname
       slurp:
