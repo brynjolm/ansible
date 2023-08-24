@@ -2,6 +2,15 @@
 - name: Configure ens19 with static IP
   hosts: servers
   become: true
+  vars:
+    ens18_content: |
+      iface ens18 inet dhcp
+
+    ens19_content: |
+      iface ens19 inet static
+          address 172.200.0.100
+          netmask 255.255.0.0
+          gateway 172.200.0.1
   tasks:
     - name: Remove existing ens18 and ens19 configurations
       lineinfile:
@@ -20,15 +29,20 @@
               gateway 172.200.0.1
       notify: Restart networking
 
-    - name: Append allow-hotplug for ens18 and ens19
-      blockinfile:
-        path: /etc/network/interfaces
-        block: |
-          allow-hotplug ens18
-          allow-hotplug ens19
-        insertafter: '^# The primary network interface'
-        
-  handlers:
+    - name: Fetch template from URL and populate
+      uri:
+        url: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
+        return_content: yes
+      register: template_content
+
+    - name: Generate interfaces file from template
+      template:
+        src: /dev/stdin
+        dest: /etc/network/interfaces
+      vars:
+        ens18_content: "{{ ens18_content }}"
+        ens19_content: "{{ ens19_content }}"
+
     - name: Restart networking
       service:
         name: networking
