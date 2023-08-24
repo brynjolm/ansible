@@ -1,3 +1,4 @@
+---
 - name: Configure Hostname and /etc/hosts
   hosts: servers
   become: true
