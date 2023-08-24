@@ -2,9 +2,6 @@
   hosts: all  # Replace with the appropriate host group name
   become: true
   vars:
-    available_ip_range_start: 100
-    available_ip_range_end: 130
-
     network_connection_static:
       - name: static-network
         type: ethernet
@@ -17,11 +14,10 @@
             - 172.200.0.1
 
   tasks:
-    - name: Get available IP
+    - name: Calculate next usable IP
       set_fact:
-        selected_ip: "172.200.0.{{ (100 + ansible_play_batch.index) }}"
-      loop: "{{ range(available_ip_range_start, available_ip_range_end) }}"
-      when: "not selected_ip"
+        selected_ip: "{{ '172.200.0.1/16' | ansible.utils.ipaddr('next_usable') }}"
+      when: not selected_ip
 
     - name: Configure ens19 interface with static IP
       nmcli:
