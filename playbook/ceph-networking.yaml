@@ -1,5 +1,5 @@
 ---
-- name: Configure ens18 and ens19 interfaces
+- name: Configure ens19 interface with static IP
   hosts: all  # Replace with the appropriate host group name
   become: true
 
@@ -10,7 +10,20 @@
         state: up
 
   tasks:
-    - name: Generate network configuration file
-      template:
-        src: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
+    - name: Get available IP
+      set_fact:
+        selected_ip: "{{ hostvars[item].available_ips | difference(hostvars[item].used_ips) | first }}"
+      loop: "{{ ansible_play_hosts_all }}"
+      loop_control:
+        loop_var: item
+
+    - name: Generate network configuration file from URL
+      get_url:
+        url: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
         dest: "/etc/network/interfaces.d/{{ network_connection_static[0].name }}"
+
+    - name: Replace placeholder with selected IP in the template file
+      replace:
+        path: "/etc/network/interfaces.d/{{ network_connection_static[0].name }}"
+        regexp: '### SELECTED_IP ###'
+        replace: "{{ selected_ip }}"
