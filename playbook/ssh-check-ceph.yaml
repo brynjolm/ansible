@@ -22,13 +22,18 @@
 
     - name: Generate Hashes of Remote Keys
       set_fact:
-        remote_key_hashes: "{{ remote_key_hashes | default([]) + [item.stdout | b64decode | b64decode | hash('sha256') | upper] }}"
+        remote_key_hashes: []
+      loop: "{{ remote_keyscan_results.results }}"
+      run_once: true
+
+    - name: Add Remote Key Hash to List
+      set_fact:
+        remote_key_hashes: "{{ remote_key_hashes + [item.stdout | b64decode | b64decode | hash('sha256') | upper] }}"
       loop: "{{ remote_keyscan_results.results }}"
 
     - name: Debug Local and Remote Hashes
       debug:
-        var: item
-      loop: "{{ remote_key_hashes }}"
+        var: remote_key_hashes
 
     - name: Compare Remote and Local Key Hashes
       assert:
