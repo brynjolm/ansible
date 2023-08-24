@@ -35,11 +35,13 @@
       setup:
 
     - name: Check and update default gateway
-      set_fact:
-        desired_gateway: '192.200.0.1'
       loop: "{{ ansible_facts['ansible_interfaces'] }}"
-      when: ansible_facts['ansible_default_ipv4']['gateway'] != desired_gateway
-      shell: ip route replace default via {{ desired_gateway }}
+      when: ansible_facts['ansible_default_ipv4']['gateway'] != '192.200.0.1'
+      block:
+        - name: Set default gateway
+          become: true
+          shell: ip route replace default via 192.200.0.1 dev {{ item }}
+
 
 - name: Find available IP and select
   hosts: servers
