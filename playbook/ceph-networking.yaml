@@ -1,6 +1,6 @@
 ---
 - name: Configure network interfaces
-  hosts: ceph_servers
+  hosts: servers
   become: yes
   tasks:
     - name: Ensure ens18 is DHCP
