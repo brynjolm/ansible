@@ -1,15 +1,21 @@
 ---
 - name: Configure network interfaces
-  hosts: servers
+  hosts: ceph_servers
   become: yes
   tasks:
-    - name: Ensure ens19 is DHCP
-      community.general.interfaces_file:
-        dest: "/etc/network/interfaces"
-        iface: ens19
-        option: dhcp
+    - name: Configure ens18 as DHCP
+      lineinfile:
+        path: /etc/network/interfaces
+        regexp: '^iface ens18'
+        line: 'iface ens18 inet dhcp'
         state: present
-        unsafe_writes: true
+
+    - name: Configure ens19 as DHCP
+      lineinfile:
+        path: /etc/network/interfaces
+        regexp: '^iface ens19'
+        line: 'iface ens19 inet dhcp'
+        state: present
 
     - name: Apply network configuration
       shell: systemctl restart networking
