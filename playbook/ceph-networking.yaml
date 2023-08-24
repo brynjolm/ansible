@@ -14,6 +14,9 @@
               gateway 172.200.0.1
       notify: Restart networking
 
+    - name: Bring up ens19 interface
+      command: ifup ens19
+
   handlers:
     - name: Restart networking
       service:
@@ -43,8 +46,7 @@
 
     - name: Update default gateway
       command: ip route replace default via 192.200.0.1
-      when: default_gateway_check.rc != 0
-
+      when: default_gateway_check.rc != 0 and not ansible_check_mode
 
 - name: Find available IP and select
   hosts: servers
