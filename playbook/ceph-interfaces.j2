@@ -1,7 +1,0 @@
-# /etc/network/interfaces.d/{{ network_connection_static[0].name }}
-
-auto {{ network_connection_static[0].name }}
-iface {{ network_connection_static[0].name }} inet static
-    address {{ network_connection_static[0].ip }}
-    gateway {{ network_connection_static[0].gateway }}
-    dns-nameservers {{ network_connection_static[0].dns | join(' ') }}
