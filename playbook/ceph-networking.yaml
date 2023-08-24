@@ -3,7 +3,7 @@
   hosts: servers
   become: true
   tasks:
-    - name: Update ens19 configuration
+    - name: Configure ens19 interface
       lineinfile:
         path: /etc/network/interfaces
         regexp: '^iface ens19'
@@ -14,7 +14,8 @@
               gateway 172.200.0.1
       notify: Restart networking
 
-    - name: Restart networking service
+  handlers:
+    - name: Restart networking
       service:
         name: networking
         state: restarted
