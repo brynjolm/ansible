@@ -13,6 +13,18 @@
         line: "{{ inventory_hostname }}"
       when: hostname_result.changed
 
+- name: Check current hostname and update /etc/hosts if needed
+  hosts: localhost
+  tasks:
+    - name: Read current hostname from /etc/hostname
+      slurp:
+        src: /etc/hostname
+      register: current_hostname
+
+    - name: Compare current hostname with inventory hostname
+      set_fact:
+        hostname_match: "{{ current_hostname.content | b64decode | regex_search(inventory_hostname) | bool }}"
+
     - name: Update /etc/hosts for current hostname
       lineinfile:
         path: /etc/hosts
