@@ -1,38 +1,23 @@
-- name: Configure ens18 and ens19 interfaces
+- name: Calculate next usable IP
   hosts: all  # Replace with the appropriate host group name
-  become: true
-  vars:
-    network_connection_static:
-      - name: static-network
-        type: ethernet
-        state: up
-        ip:
-          dhcp: no
-          address: "{{ selected_ip }}/16"
-          gateway4: 172.200.0.1
-          dns:
-            - 172.200.0.1
-
+  gather_facts: yes
   tasks:
     - name: Calculate next usable IP
       set_fact:
-        selected_ip: "{{ '172.200.0.1/16' | ansible.utils.ipaddr('next_usable') }}"
-      when: not selected_ip
-
+        selected_ip: "{{ ansible_default_ipv4.network | ipaddr('next_usable') }}"
+        
+- name: Configure ens19 interface with static IP
+  hosts: all  # Replace with the appropriate host group name
+  become: true
+  tasks:
     - name: Configure ens19 interface with static IP
-      nmcli:
-        conn_name: "{{ network_connection_static[0].name }}"
-        type: "{{ network_connection_static[0].type }}"
-        state: "{{ network_connection_static[0].state }}"
-        ifname: ens19
-        ip4: "{{ network_connection_static[0].ip }}"
-      vars:
-        network_connection_static: "{{ network_connection_static | first }}"
-
-    - name: Configure ens18 interface with DHCP
-      nmcli:
-        conn_name: dhcp-network
-        type: ethernet
-        state: up
-        ifname: ens18
-        ip4: "dhcp"  # This indicates DHCP configuration
+      blockinfile:
+        path: /etc/network/interfaces  # Modify the correct path based on your system's network configuration file
+        marker: "# {mark} ANSIBLE MANAGED BLOCK"
+        block: |
+          auto ens19
+          iface ens19 inet static
+              address {{ selected_ip }}/16
+              netmask 255.255.0.0
+              gateway 172.200.0.1
+              dns-nameservers 172.200.0.1
