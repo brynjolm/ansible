@@ -42,7 +42,6 @@
           become: true
           shell: ip route replace default via 192.200.0.1 dev {{ item }}
 
-
 - name: Find available IP and select
   hosts: servers
   become: true
