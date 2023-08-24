@@ -3,15 +3,16 @@
   hosts: servers
   become: true
   tasks:
-    - name: Remove existing configuration for ens19
+    - name: Remove existing ens18 and ens19 configurations
       lineinfile:
         path: /etc/network/interfaces
+        regexp: '^(iface ens18|iface ens19)'
         state: absent
-        regexp: '^iface ens19'
 
     - name: Configure ens19 interface
       lineinfile:
         path: /etc/network/interfaces
+        regexp: '^iface ens19'
         line: |
           iface ens19 inet static
               address 172.200.0.100
@@ -19,6 +20,24 @@
               gateway 172.200.0.1
       notify: Restart networking
 
+    - name: Append ens18 DHCP configuration
+      lineinfile:
+        path: /etc/network/interfaces
+        line: "iface ens18 inet dhcp"
+      insertafter: '^# The primary network interface'
+
+    - name: Add allow-hotplug for ens19
+      lineinfile:
+        path: /etc/network/interfaces
+        line: "allow-hotplug ens19"
+        insertafter: '^# The primary network interface'
+
+    - name: Add allow-hotplug for ens18
+      lineinfile:
+        path: /etc/network/interfaces
+        line: "allow-hotplug ens18"
+        insertafter: '^# The primary network interface'
+        
   handlers:
     - name: Restart networking
       service:
