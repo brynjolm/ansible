@@ -1,22 +1,23 @@
----
 - name: Configure network interfaces
   hosts: servers
   become: yes
   tasks:
-    - name: Configure ens18 as DHCP
-      lineinfile:
-        path: /etc/network/interfaces
-        regexp: '^iface ens18'
-        line: 'iface ens18 inet dhcp'
+    - name: Ensure ens18 is DHCP
+      community.general.interfaces_file:
+        dest: "/etc/network/interfaces"
+        iface: ens18
+        option: "dhcp"
         state: present
 
-    - name: Configure ens19 as DHCP
-      lineinfile:
-        path: /etc/network/interfaces
-        regexp: '^iface ens19'
-        line: 'iface ens19 inet dhcp'
+    - name: Ensure ens19 is DHCP
+      community.general.interfaces_file:
+        dest: "/etc/network/interfaces"
+        iface: ens19
+        option: "dhcp"
         state: present
 
-    - name: Apply network configuration
-      shell: systemctl restart networking
+    - name: Restart networking service
+      systemd:
+        name: networking
+        state: restarted
       become: yes
