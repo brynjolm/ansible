@@ -12,27 +12,9 @@
             - "{{ selected_ip }}/16"
           gateway4: 172.200.0.1
           dns:
-            - 8.8.8.8
-            - 8.8.4.4
+            - 192.200.0.1"
 
   tasks:
-    - name: Get first available IP
-      set_fact:
-        selected_ip: "{{ available_ips | difference(used_ips) | first }}"
-      vars:
-        available_ips: "{{ range(100, 130) | map('format', '172.200.0.{}') | list }}"
-        used_ips: "{{ ansible_play_hosts_all | map('extract', hostvars) | map(attribute='ansible_default_ipv4.address') | select('defined') | list }}"
-
-    - name: Configure ens18 interface with DHCP
-      nmcli:
-        conn_name: dhcp-network
-        type: ethernet
-        state: up
-        ifname: ens18
-        ip4: "dhcp"  # This indicates DHCP configuration
-      loop_control:
-        loop_var: item
-
     - name: Configure ens19 interface with static IP
       nmcli:
         conn_name: "{{ item.name }}"
@@ -41,5 +23,19 @@
         ifname: ens19
         ip4: "{{ item.ip }}"
       loop: "{{ network_connection_static }}"
+      loop_control:
+        loop_var: item
+      vars:
+        available_ips: "{{ range(100, 130) | map('format', '172.200.0.{}') | list }}"
+        used_ips: "{{ ansible_play_hosts_all | map('extract', hostvars) | map(attribute='ansible_default_ipv4.address') | select('defined') | list }}"
+        selected_ip: "{{ available_ips | difference(used_ips) | first }}"
+
+    - name: Configure ens18 interface with DHCP
+      nmcli:
+        conn_name: dhcp-network
+        type: ethernet
+        state: up
+        ifname: ens18
+        ip4: "dhcp"  # This indicates DHCP configuration
       loop_control:
         loop_var: item
