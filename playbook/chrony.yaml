@@ -29,3 +29,17 @@
     - name: Set timezone using timedatectl
       command: timedatectl set-timezone Europe/Berlin
       register: timezone_result
+
+    - name: Check Chrony synchronization status
+      shell: chronyc tracking | grep -E "Leap status\s+: Normal|Leap status\s+: Insert second"
+      register: sync_status
+      ignore_errors: true  # Ignore errors in case synchronization check fails
+
+    - name: Display synchronization status
+      debug:
+        var: sync_status.stdout_lines
+
+    - name: Force resynchronization if not synced
+      shell: chronyc makestep
+      when: "'Leap status: Normal' not in sync_status.stdout_lines and 'Leap status: Insert second' not in sync_status.stdout_lines"
+      ignore_errors: true  # Ignore errors in case resynchronization fails
