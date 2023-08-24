@@ -42,7 +42,7 @@
       vars:
         ens18_content: "{{ ens18_content }}"
         ens19_content: "{{ ens19_content }}"
-
+        
     - name: Restart networking
       service:
         name: networking
