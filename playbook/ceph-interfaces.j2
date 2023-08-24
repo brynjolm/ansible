@@ -1,14 +1,7 @@
-# This file describes the network interfaces available on your system
-# and how to activate them. For more information, see interfaces(5).
+# /etc/network/interfaces.d/{{ network_connection_static[0].name }}
 
-source /etc/network/interfaces.d/*
-
-# The loopback network interface
-auto lo
-iface lo inet loopback
-
-# The primary network interface
-allow-hotplug ens18
-allow-hotplug ens19
-{{ ens18_content }}
-{{ ens19_content }}
+auto {{ network_connection_static[0].name }}
+iface {{ network_connection_static[0].name }} inet static
+    address {{ network_connection_static[0].ip }}
+    gateway {{ network_connection_static[0].gateway }}
+    dns-nameservers {{ network_connection_static[0].dns | join(' ') }}
