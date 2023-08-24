@@ -3,19 +3,21 @@
   hosts: servers
   become: true
   tasks:
+    - name: Remove existing configuration for ens19
+      lineinfile:
+        path: /etc/network/interfaces
+        state: absent
+        regexp: '^iface ens19'
+
     - name: Configure ens19 interface
       lineinfile:
         path: /etc/network/interfaces
-        regexp: '^iface ens19'
         line: |
           iface ens19 inet static
               address 172.200.0.100
               netmask 255.255.0.0
               gateway 172.200.0.1
       notify: Restart networking
-
-    - name: Bring up ens19 interface
-      command: ifup ens19
 
   handlers:
     - name: Restart networking
