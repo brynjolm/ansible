@@ -14,7 +14,7 @@
       when: hostname_result.changed
 
 - name: Check current hostname and update /etc/hosts if needed
-  hosts: localhost
+  hosts: servers
   tasks:
     - name: Read current hostname from /etc/hostname
       slurp:
