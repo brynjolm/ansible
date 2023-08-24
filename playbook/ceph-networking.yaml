@@ -1,87 +1,91 @@
 ---
-- name: Configure ens19 with static IP
+- name: Configure network interfaces
   hosts: servers
-  become: true
-  vars:
-    ens18_content: |
-      iface ens18 inet dhcp
-
-    ens19_content: |
-      iface ens19 inet static
-          address 172.200.0.100
-          netmask 255.255.0.0
-          gateway 172.200.0.1
+  become: yes
   tasks:
-    - name: Remove existing ens18 and ens19 configurations
-      lineinfile:
-        path: /etc/network/interfaces
-        regexp: '^(iface ens18|iface ens19)'
-        state: absent
+    - name: Backup the original interfaces file
+      command: cp /etc/network/interfaces /etc/network/interfaces_backup
+      ignore_errors: yes  # Ignoring errors if the backup already exists
 
-    - name: Configure ens19 interface
-      lineinfile:
-        path: /etc/network/interfaces
-        regexp: '^iface ens19'
-        line: |
-          iface ens19 inet static
-              address 172.200.0.100
-              netmask 255.255.0.0
-              gateway 172.200.0.1
+    - name: Create a new interfaces_tmp file with initial contents
+      blockinfile:
+        path: /etc/network/interfaces_tmp
+        block: |
+          # This file describes the network interfaces available on your system
+          # and how to activate them. For more information, see interfaces(5).
 
-    - name: Fetch template from URL and populate
-      uri:
-        url: "https://raw.githubusercontent.com/brynjolm/ansible/main/playbook/ceph-interfaces.j2"
-        return_content: yes
-      register: template_content
+          source /etc/network/interfaces.d/*
 
-    - name: Generate interfaces file from template
-      template:
-        src: /dev/stdin
+          # The loopback network interface
+          auto lo
+          iface lo inet loopback
+
+    - name: Find available IP and configure ens18
+      shell: |
+        base_ip="192.200.0"
+        ip_range_start=100
+        ip_range_end=250
+        for ((i = ip_range_start; i <= ip_range_end; i++)); do
+            ip="$base_ip.$i"
+            if ! ping -c 1 -W 1 "$ip" > /dev/null 2>&1; then
+                break
+            fi
+        done
+
+        if [ "$i" -le "$ip_range_end" ]; then
+            echo "# Configured by Ansible" >> /etc/network/interfaces_tmp
+            echo "auto ens18" >> /etc/network/interfaces_tmp
+            echo "iface ens18 inet static" >> /etc/network/interfaces_tmp
+            echo "    address $ip" >> /etc/network/interfaces_tmp
+            echo "    netmask 255.255.0.0" >> /etc/network/interfaces_tmp
+            echo "    gateway 192.200.0.1" >> /etc/network/interfaces_tmp
+            post_status $? "Configured ens18 with IP $ip"
+        else
+            post_status 1 "No available IP found in range $base_ip.$ip_range_start - $base_ip.$ip_range_end"
+        fi
+      register: result_ens18
+      changed_when: false  # Avoid marking as changed even if IP is not configured
+
+    - name: Find available IP and configure ens19
+      shell: |
+        base_ip="172.200.0"
+        ip_range_start=10
+        ip_range_end=200
+        for ((i = ip_range_start; i <= ip_range_end; i++)); do
+            ip="$base_ip.$i"
+            if ! ping -c 1 -W 1 "$ip" > /dev/null 2>&1; then
+                break
+            fi
+        done
+
+        if [ "$i" -le "$ip_range_end" ]; then
+            echo "# Configured by Ansible" >> /etc/network/interfaces_tmp
+            echo "auto ens19" >> /etc/network/interfaces_tmp
+            echo "iface ens19 inet static" >> /etc/network/interfaces_tmp
+            echo "    address $ip" >> /etc/network/interfaces_tmp
+            echo "    netmask 255.255.0.0" >> /etc/network/interfaces_tmp
+            echo "    gateway 172.200.0.1" >> /etc/network/interfaces_tmp
+            post_status $? "Configured ens19 with IP $ip"
+        else
+            post_status 1 "No available IP found in range $base_ip.$ip_range_start - $base_ip.$ip_range_end"
+        fi
+      register: result_ens19
+      changed_when: false  # Avoid marking as changed even if IP is not configured
+
+    - name: Replace /etc/network/interfaces with the modified configuration
+      copy:
+        src: /etc/network/interfaces_tmp
         dest: /etc/network/interfaces
-      vars:
-        ens18_content: "{{ ens18_content }}"
-        ens19_content: "{{ ens19_content }}"
-        
-    - name: Restart networking using service module
-      service:
+      when: result_ens18.rc == 0 or result_ens19.rc == 0
+
+    - name: Clean up temporary files
+      file:
+        path: /etc/network/interfaces_tmp
+        state: absent
+      when: result_ens18.rc == 0 or result_ens19.rc == 0
+
+    - name: Restart networking service
+      systemd:
         name: networking
         state: restarted
-
-- name: Pause for SSH reconnection
-  hosts: servers
-  become: true
-  tasks:
-    - name: Pause for SSH reconnection
-      pause:
-        minutes: 5
-
-- name: Gather network facts and update default gateway
-  hosts: servers
-  become: true
-  tasks:
-    - name: Gather facts
-      setup:
-
-    - name: Check default gateway
-      command: ip route show default | grep -q "via 192.200.0.1"
-      register: default_gateway_check
-      changed_when: false
-      check_mode: no_run  # Skip running in check mode
-
-    - name: Update default gateway
-      command: ip route replace default via 192.200.0.1
-      when: default_gateway_check.rc != 0 and not ansible_check_mode
-
-- name: Find available IP and select
-  hosts: servers
-  become: true
-  tasks:
-    - name: Generate available IPs
-      set_fact:
-        available_ips: "{{ range(100, 130) | map('format', '172.200.0.{}') | list }}"  # Generates IPs from 172.200.0.100 to 172.200.0.120
-
-    - name: Get first available IP
-      set_fact:
-        selected_ip: "{{ available_ips | difference(used_ips) | first }}"
-      vars:
-        used_ips: "{{ ansible_play_hosts_all | map('extract', hostvars) | map(attribute='ansible_default_ipv4.address') | select('defined') | list }}"
+      when: result_ens18.rc == 0 or result_ens19.rc == 0
