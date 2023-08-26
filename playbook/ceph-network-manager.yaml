@@ -28,11 +28,6 @@
         name: network-manager
         state: present
 
-    - name: Restart NetworkManager
-      systemd:
-        name: NetworkManager
-        state: restarted
-
     - name: Add Ethernet connection settings for ens18
       nmcli:
         state: present
@@ -52,6 +47,11 @@
         ip4: "{{ ens19_settings.ip4 }}"
         gw4: "{{ ens19_settings.gw4 }}"
         dns4: "{{ ens19_settings.dns4 }}"
+  
+    - name: Restart NetworkManager
+      systemd:
+        name: NetworkManager
+        state: restarted
 
     - name: Stop and disable networking.service
       systemd:
