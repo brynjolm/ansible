@@ -1,6 +1,6 @@
 ---
 - name: Configure NetworkManager
-  hosts: servers
+  hosts: your_server_group
   become: true
   
   tasks:
@@ -21,6 +21,9 @@
         ifname: ens18
         type: ethernet
         ip4: dhcp
+        gw4: "{{ default_gateway }}"
+        dns4: "{{ dns_servers }}"
+        autoconnect: yes
         state: present
 
     - name: Add an Ethernet connection with DHCP IP configuration (ens19)
@@ -29,9 +32,13 @@
         ifname: ens19
         type: ethernet
         ip4: dhcp
+        gw4: "{{ default_gateway }}"
+        dns4: "{{ dns_servers }}"
+        autoconnect: yes
         state: present
 
     - name: Restart NetworkManager
       systemd:
         name: NetworkManager
         state: restarted
+
