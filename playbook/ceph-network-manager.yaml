@@ -1,6 +1,6 @@
 ---
 - name: Configure NetworkManager
-  hosts: your_server_group
+  hosts: servers
   become: true
   
   tasks:
