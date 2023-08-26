@@ -1,6 +1,6 @@
 ---
 - name: Configure NetworkManager and Transition from ifupdown
-  hosts: servers
+  hosts: your_server_group
   become: yes
   
   tasks:
@@ -15,28 +15,47 @@
         state: started
         enabled: yes
 
-    - name: Ensure ens18 and ens19 are using DHCP for IPv4
+    - name: Ensure ens18 is using DHCP for IPv4
       nmcli:
         cmd: connection
-        name: "{{ item }}"
+        name: connection_ens18
         type: ethernet
-        ifname: "{{ item }}"
+        ifname: ens18
         autoconnect: yes
         state: present
         ip4: dhcp
-      loop:
-        - ens18
-        - ens19
 
-    - name: Ensure ens18 and ens19 are using DHCP for IPv6
+    - name: Ensure ens19 is using DHCP for IPv4
       nmcli:
         cmd: connection
-        name: "{{ item }}"
+        name: connection_ens19
         type: ethernet
-        ifname: "{{ item }}"
+        ifname: ens19
+        autoconnect: yes
+        state: present
+        ip4: dhcp
+
+    - name: Ensure ens18 is using DHCP for IPv6
+      nmcli:
+        cmd: connection
+        name: connection_ens18
+        type: ethernet
+        ifname: ens18
         autoconnect: yes
         state: present
         ip6: dhcp
-      loop:
-        - ens18
-        - ens19
+
+    - name: Ensure ens19 is using DHCP for IPv6
+      nmcli:
+        cmd: connection
+        name: connection_ens19
+        type: ethernet
+        ifname: ens19
+        autoconnect: yes
+        state: present
+        ip6: dhcp
+
+    - name: Restart NetworkManager
+      systemd:
+        name: NetworkManager
+        state: restarted
