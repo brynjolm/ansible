@@ -1,0 +1,42 @@
+---
+- name: Configure NetworkManager and Transition from ifupdown
+  hosts: your_server_group
+  become: yes
+  
+  tasks:
+    - name: Install NetworkManager
+      apt:
+        name: network-manager
+        state: present
+
+    - name: Start NetworkManager service
+      systemd:
+        name: NetworkManager
+        state: started
+        enabled: yes
+
+    - name: Ensure ens18 and ens19 are using DHCP for IPv4
+      nmcli:
+        cmd: connection
+        name: "{{ item }}"
+        type: ethernet
+        ifname: "{{ item }}"
+        autoconnect: yes
+        state: present
+        ip4: dhcp
+      loop:
+        - ens18
+        - ens19
+
+    - name: Ensure ens18 and ens19 are using DHCP for IPv6
+      nmcli:
+        cmd: connection
+        name: "{{ item }}"
+        type: ethernet
+        ifname: "{{ item }}"
+        autoconnect: yes
+        state: present
+        ip6: dhcp
+      loop:
+        - ens18
+        - ens19
