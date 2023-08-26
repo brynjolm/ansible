@@ -1,6 +1,6 @@
 ---
 - name: Configure NetworkManager and Transition from ifupdown
-  hosts: your_server_group
+  hosts: servers
   become: yes
   
   tasks:
