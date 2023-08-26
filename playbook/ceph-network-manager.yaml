@@ -58,13 +58,3 @@
         state: restarted
       async: 180
       poll: 0
-
-    - name: Wait for network configuration changes to apply
-      async_status:
-        jid: "{{ item.ansible_job_id }}"
-      loop:
-        - "{{ play_hosts }}"
-      register: job_result
-      until: job_result.finished
-      retries: 60
-      delay: 10
