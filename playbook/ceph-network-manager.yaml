@@ -1,11 +1,11 @@
 ---
-- name: Configure NetworkManager for DHCP
-  hosts: servers
-  become: yes
+- name: Configure NetworkManager
+- hosts: servers
+  become: true
   
   tasks:
     - name: Install NetworkManager
-      apt:
+      package:
         name: network-manager
         state: present
 
@@ -13,27 +13,23 @@
       systemd:
         name: NetworkManager
         state: started
-        enabled: yes
+        enabled: true
 
-    - name: Ensure ens18 is using DHCP for IPv4 and IPv6
+    - name: Add an Ethernet connection with DHCP IP configuration (ens18)
       nmcli:
         conn_name: connection_ens18
-        type: ethernet
         ifname: ens18
-        autoconnect: yes
-        state: present
+        type: ethernet
         ip4: dhcp
-        ip6: dhcp
+        state: present
 
-    - name: Ensure ens19 is using DHCP for IPv4 and IPv6
+    - name: Add an Ethernet connection with DHCP IP configuration (ens19)
       nmcli:
         conn_name: connection_ens19
-        type: ethernet
         ifname: ens19
-        autoconnect: yes
-        state: present
+        type: ethernet
         ip4: dhcp
-        ip6: dhcp
+        state: present
 
     - name: Restart NetworkManager
       systemd:
