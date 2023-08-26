@@ -52,12 +52,6 @@
       async: 180
       poll: 0
 
-    - name: Stop and disable networking.service
-      systemd:
-        name: networking
-        enabled: no
-        state: stopped
-
     - name: Restart NetworkManager
       systemd:
         name: NetworkManager
