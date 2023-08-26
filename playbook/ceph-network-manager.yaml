@@ -58,6 +58,13 @@
         enabled: no
         state: stopped
 
+    - name: Restart NetworkManager
+      systemd:
+        name: NetworkManager
+        state: restarted
+      async: 180
+      poll: 0
+
     - name: Wait for network configuration changes to apply
       async_status:
         jid: "{{ item.ansible_job_id }}"
@@ -67,8 +74,3 @@
       until: job_result.finished
       retries: 60
       delay: 10
-
-    - name: Restart NetworkManager
-      systemd:
-        name: NetworkManager
-        state: restarted
