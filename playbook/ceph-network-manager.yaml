@@ -2,43 +2,53 @@
 - name: Configure NetworkManager
   hosts: servers
   become: true
-  
+
+  vars:
+    ens18_settings:
+      conn_name: connection_ens18
+      conn_type: ethernet
+      ifname: ens18
+      ip4: 192.200.0.1/16  # Replace with the appropriate IP address and subnet mask
+      gw4: 192.200.0.1   # Replace with the appropriate gateway
+      dns4:                # Replace with your DNS server IPs
+        - 192.200.0.1
+
+    ens19_settings:
+      conn_name: connection_ens19
+      conn_type: ethernet
+      ifname: ens19
+      ip4: 172.200.0.1/16  # Replace with the appropriate IP address and subnet mask
+      gw4: 172.200.0.1   # Replace with the appropriate gateway
+      dns4:                # Replace with your DNS server IPs
+        - 172.200.0.1
+
   tasks:
     - name: Install NetworkManager
       package:
         name: network-manager
         state: present
 
-    - name: Start NetworkManager service
-      systemd:
-        name: NetworkManager
-        state: started
-        enabled: true
-
-    - name: Add an Ethernet connection with DHCP IP configuration (ens18)
+    - name: Add Ethernet connection settings for ens18
       nmcli:
-        conn_name: connection_ens18
-        ifname: ens18
-        type: ethernet
-        ip4: dhcp
-        gw4: "{{ default_gateway }}"
-        dns4: "{{ dns_servers }}"
-        autoconnect: yes
         state: present
+        conn_name: "{{ ens18_settings.conn_name }}"
+        type: "{{ ens18_settings.conn_type }}"
+        ifname: "{{ ens18_settings.ifname }}"
+        ip4: "{{ ens18_settings.ip4 }}"
+        gw4: "{{ ens18_settings.gw4 }}"
+        dns4: "{{ ens18_settings.dns4 }}"
 
-    - name: Add an Ethernet connection with DHCP IP configuration (ens19)
+    - name: Add Ethernet connection settings for ens19
       nmcli:
-        conn_name: connection_ens19
-        ifname: ens19
-        type: ethernet
-        ip4: dhcp
-        gw4: "{{ default_gateway }}"
-        dns4: "{{ dns_servers }}"
-        autoconnect: yes
         state: present
-
+        conn_name: "{{ ens19_settings.conn_name }}"
+        type: "{{ ens19_settings.conn_type }}"
+        ifname: "{{ ens19_settings.ifname }}"
+        ip4: "{{ ens19_settings.ip4 }}"
+        gw4: "{{ ens19_settings.gw4 }}"
+        dns4: "{{ ens19_settings.dns4 }}"
+        
     - name: Restart NetworkManager
       systemd:
         name: NetworkManager
         state: restarted
-
