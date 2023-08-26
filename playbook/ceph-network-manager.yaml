@@ -7,7 +7,7 @@
     ens18_settings:
       conn_name: ens18_connection
       conn_type: ethernet
-      ifname: /sys/class/net/ens18
+      ifname: enp0s18  # Use the altname
       ip4: 192.200.0.1/16
       gw4: 192.200.0.1
       dns4:
@@ -16,7 +16,7 @@
     ens19_settings:
       conn_name: ens19_connection
       conn_type: ethernet
-      ifname: /sys/class/net/ens19
+      ifname: enp0s19  # Use the altname
       ip4: 172.200.0.1/16
       gw4: 172.200.0.1
       dns4:
@@ -28,11 +28,6 @@
         name: network-manager
         state: present
 
-    - name: Wait for ens18 to be available
-      wait_for:
-        path: "{{ ens18_settings.ifname }}"
-        state: present
-
     - name: Add Ethernet connection settings for ens18
       nmcli:
         state: present
@@ -42,11 +37,6 @@
         ip4: "{{ ens18_settings.ip4 }}"
         gw4: "{{ ens18_settings.gw4 }}"
         dns4: "{{ ens18_settings.dns4 }}"
-
-    - name: Wait for ens19 to be available
-      wait_for:
-        path: "{{ ens19_settings.ifname }}"
-        state: present
 
     - name: Add Ethernet connection settings for ens19
       nmcli:
