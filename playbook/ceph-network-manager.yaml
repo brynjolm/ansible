@@ -5,18 +5,18 @@
 
   vars:
     ens18_settings:
-      conn_name: connection_ens18
+      conn_name: ens18_connection
       conn_type: ethernet
-      ifname: /sys/class/net/ens18  # Use the full device path
+      ifname: /sys/class/net/ens18
       ip4: 192.200.0.1/16
       gw4: 192.200.0.1
       dns4:
         - 192.200.0.1
 
     ens19_settings:
-      conn_name: connection_ens19
+      conn_name: ens19_connection
       conn_type: ethernet
-      ifname: /sys/class/net/ens19  # Use the full device path
+      ifname: /sys/class/net/ens19
       ip4: 172.200.0.1/16
       gw4: 172.200.0.1
       dns4:
