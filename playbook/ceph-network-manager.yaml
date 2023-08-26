@@ -37,6 +37,8 @@
         ip4: "{{ ens18_settings.ip4 }}"
         gw4: "{{ ens18_settings.gw4 }}"
         dns4: "{{ ens18_settings.dns4 }}"
+      async: 180
+      poll: 0
 
     - name: Add Ethernet connection settings for ens19
       nmcli:
@@ -47,13 +49,25 @@
         ip4: "{{ ens19_settings.ip4 }}"
         gw4: "{{ ens19_settings.gw4 }}"
         dns4: "{{ ens19_settings.dns4 }}"
+      async: 180
+      poll: 0
 
     - name: Stop and disable networking.service
       systemd:
         name: networking
         enabled: no
         state: stopped
-        
+
+    - name: Wait for network configuration changes to apply
+      async_status:
+        jid: "{{ item.ansible_job_id }}"
+      loop:
+        - "{{ play_hosts }}"
+      register: job_result
+      until: job_result.finished
+      retries: 60
+      delay: 10
+
     - name: Restart NetworkManager
       systemd:
         name: NetworkManager
