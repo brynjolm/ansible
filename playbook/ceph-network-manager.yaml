@@ -1,5 +1,5 @@
 ---
-- name: Configure NetworkManager and Transition from ifupdown
+- name: Configure NetworkManager for DHCP
   hosts: servers
   become: true
   
@@ -15,19 +15,27 @@
         state: started
         enabled: yes
 
-    - name: Disable and stop ifupdown
-      systemd:
-        name: ifupdown
-        state: stopped
-        enabled: no
+    - name: Ensure ens18 is using DHCP for IPv4 and IPv6
+      nmcli:
+        cmd: connection
+        name: connection_ens18
+        type: ethernet
+        ifname: ens18
+        autoconnect: yes
+        state: present
+        ip4: dhcp
+        ip6: dhcp
 
-    - name: Ensure ens18 is using DHCP for IPv4
-      command: nmcli con add type ethernet ifname ens18 autoconnect yes ipv4.method auto
-      become: yes
-
-    - name: Ensure ens19 is using DHCP for IPv4
-      command: nmcli con add type ethernet ifname ens19 autoconnect yes ipv4.method auto
-      become: yes
+    - name: Ensure ens19 is using DHCP for IPv4 and IPv6
+      nmcli:
+        cmd: connection
+        name: connection_ens19
+        type: ethernet
+        ifname: ens19
+        autoconnect: yes
+        state: present
+        ip4: dhcp
+        ip6: dhcp
 
     - name: Restart NetworkManager
       systemd:
