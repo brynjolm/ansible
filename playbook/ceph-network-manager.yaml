@@ -7,25 +7,30 @@
     ens18_settings:
       conn_name: connection_ens18
       conn_type: ethernet
-      ifname: ens18
-      ip4: 192.200.0.1/16  # Replace with the appropriate IP address and subnet mask
-      gw4: 192.200.0.1   # Replace with the appropriate gateway
-      dns4:                # Replace with your DNS server IPs
+      ifname: /sys/class/net/ens18  # Use the full device path
+      ip4: 192.200.0.1/16
+      gw4: 192.200.0.1
+      dns4:
         - 192.200.0.1
 
     ens19_settings:
       conn_name: connection_ens19
       conn_type: ethernet
-      ifname: ens19
-      ip4: 172.200.0.1/16  # Replace with the appropriate IP address and subnet mask
-      gw4: 172.200.0.1   # Replace with the appropriate gateway
-      dns4:                # Replace with your DNS server IPs
+      ifname: /sys/class/net/ens19  # Use the full device path
+      ip4: 172.200.0.1/16
+      gw4: 172.200.0.1
+      dns4:
         - 172.200.0.1
 
   tasks:
     - name: Install NetworkManager
       package:
         name: network-manager
+        state: present
+
+    - name: Wait for ens18 to be available
+      wait_for:
+        path: "{{ ens18_settings.ifname }}"
         state: present
 
     - name: Add Ethernet connection settings for ens18
@@ -38,6 +43,11 @@
         gw4: "{{ ens18_settings.gw4 }}"
         dns4: "{{ ens18_settings.dns4 }}"
 
+    - name: Wait for ens19 to be available
+      wait_for:
+        path: "{{ ens19_settings.ifname }}"
+        state: present
+
     - name: Add Ethernet connection settings for ens19
       nmcli:
         state: present
@@ -47,7 +57,7 @@
         ip4: "{{ ens19_settings.ip4 }}"
         gw4: "{{ ens19_settings.gw4 }}"
         dns4: "{{ ens19_settings.dns4 }}"
-        
+
     - name: Restart NetworkManager
       systemd:
         name: NetworkManager
