@@ -18,7 +18,7 @@
     - name: Ensure ens18 is using DHCP for IPv4 and IPv6
       nmcli:
         cmd: connection
-        name: connection_ens18
+        conn_name: connection_ens18
         type: ethernet
         ifname: ens18
         autoconnect: yes
@@ -29,7 +29,7 @@
     - name: Ensure ens19 is using DHCP for IPv4 and IPv6
       nmcli:
         cmd: connection
-        name: connection_ens19
+        conn_name: connection_ens19
         type: ethernet
         ifname: ens19
         autoconnect: yes
