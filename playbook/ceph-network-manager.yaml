@@ -22,8 +22,8 @@
         ifname: ens18
         autoconnect: yes
         state: present
-        ip4: dhcp
-        ip6: dhcp
+        ipv4.method: auto
+        ipv6.method: auto
 
     - name: Ensure ens19 is using DHCP for IPv4 and IPv6
       nmcli:
@@ -32,8 +32,8 @@
         ifname: ens19
         autoconnect: yes
         state: present
-        ip4: dhcp
-        ip6: dhcp
+        ipv4.method: auto
+        ipv6.method: auto
 
     - name: Restart NetworkManager
       systemd:
