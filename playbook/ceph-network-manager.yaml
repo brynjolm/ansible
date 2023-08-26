@@ -47,14 +47,14 @@
         ip4: "{{ ens19_settings.ip4 }}"
         gw4: "{{ ens19_settings.gw4 }}"
         dns4: "{{ ens19_settings.dns4 }}"
-  
-    - name: Restart NetworkManager
-      systemd:
-        name: NetworkManager
-        state: restarted
 
     - name: Stop and disable networking.service
       systemd:
         name: networking
         enabled: no
         state: stopped
+        
+    - name: Restart NetworkManager
+      systemd:
+        name: NetworkManager
+        state: restarted
