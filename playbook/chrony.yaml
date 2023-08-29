@@ -1,5 +1,5 @@
 - name: Configure Time Synchronization and Timezone
-  hosts: servers
+  hosts: all
   become: true
   tasks:
     - name: Install Chrony
