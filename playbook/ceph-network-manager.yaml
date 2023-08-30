@@ -8,35 +8,29 @@
       conn_name: connection_ens18
       conn_type: ethernet
       ifname: ens18
-      ip4: 192.200.0.1/16
-      gw4: 192.200.0.1
-      dns4:
-        - 192.200.0.1
+      method: auto  # Use DHCP
+      # No need to set ip4, gw4, or dns4 for DHCP
 
     ens19_settings:
       conn_name: connection_ens19
       conn_type: ethernet
       ifname: ens19
-      ip4: 172.200.0.1/16
-      gw4: 172.200.0.1
-      dns4:
-        - 172.200.0.1
+      method: auto  # Use DHCP
+      # No need to set ip4, gw4, or dns4 for DHCP
 
   tasks:
     - name: Install NetworkManager
       package:
         name: network-manager
         state: present
-
+        
     - name: Add Ethernet connection settings for ens18
       nmcli:
         state: present
         conn_name: "{{ ens18_settings.conn_name }}"
         type: "{{ ens18_settings.conn_type }}"
         ifname: "{{ ens18_settings.ifname }}"
-        ip4: "{{ ens18_settings.ip4 }}"
-        gw4: "{{ ens18_settings.gw4 }}"
-        dns4: "{{ ens18_settings.dns4 }}"
+        method: "{{ ens18_settings.method }}"
       async: 180
       poll: 0
 
@@ -46,9 +40,7 @@
         conn_name: "{{ ens19_settings.conn_name }}"
         type: "{{ ens19_settings.conn_type }}"
         ifname: "{{ ens19_settings.ifname }}"
-        ip4: "{{ ens19_settings.ip4 }}"
-        gw4: "{{ ens19_settings.gw4 }}"
-        dns4: "{{ ens19_settings.dns4 }}"
+        method: "{{ ens19_settings.method }}"
       async: 180
       poll: 0
 
